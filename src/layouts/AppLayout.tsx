@@ -13,6 +13,7 @@ export function AppLayout() {
         <nav>
           <Link to="/">Dashboard</Link>
           <Link to="/rooms">Habitaciones</Link>
+          <Link to="/clients">Clientes</Link>
         </nav>
 
         <section>
