@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { useAuth } from './contexts/AuthContext';
 import { AppLayout } from './layouts/AppLayout';
+import { ClientsPage } from './pages/ClientsPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { RoomsPage } from './pages/RoomsPage';
@@ -23,6 +24,7 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/rooms" element={<RoomsPage />} />
+          <Route path="/clients" element={<ClientsPage />} />
         </Route>
       </Route>
 
