@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -10,6 +10,17 @@ import type { Reservation } from '../types/reservation';
 import type { Room } from '../types/room';
 import type { Stay } from '../types/stay';
 
+function obtenerClaseBadgeEstadoAlojamiento(estado: string) {
+  if (estado === 'ACTIVO') {
+    return 'badge badge-success';
+  }
+
+  if (estado === 'FINALIZADO') {
+    return 'badge badge-muted';
+  }
+
+  return 'badge badge-muted';
+}
 
 export function StaysPage() {
   const [alojamientos, setAlojamientos] = useState<Stay[]>([]);
@@ -162,8 +173,9 @@ export function StaysPage() {
     <section>
       <h2>Alojamientos</h2>
 
-      <form onSubmit={crearAlojamiento}>
-        <h3>Nuevo alojamiento</h3>
+      <CollapsibleForm title="Nuevo alojamiento">
+        <form onSubmit={crearAlojamiento}>
+          <h3>Nuevo alojamiento</h3>
 
         <div>
           <label htmlFor="clienteId">Cliente</label>
@@ -237,11 +249,11 @@ export function StaysPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
+        <button type="submit" className="button-success" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Crear alojamiento'}
         </button>
       </form>
-
+    </CollapsibleForm>
       {error && <p>{error}</p>}
 
       <h3>Listado</h3>
@@ -249,8 +261,9 @@ export function StaysPage() {
       {alojamientos.length === 0 ? (
         <p>No hay alojamientos cargados.</p>
       ) : (
-        <table>
-          <thead>
+        <div className="table-wrapper">
+          <table>
+            <thead>
             <tr>
               <th>Cliente</th>
               <th>Habitación</th>
@@ -271,28 +284,35 @@ export function StaysPage() {
                 </td>
                 <td>{alojamiento.fechaIngreso.slice(0, 10)}</td>
                 <td>{alojamiento.fechaSalida.slice(0, 10)}</td>
-                <td>{alojamiento.estado}</td>
-               <td>
-                  {alojamiento.estado === 'ACTIVO' ? (
-                    <button
-                      type="button"
-                      onClick={() => finalizarAlojamiento(alojamiento.id)}
-                    >
-                      Finalizar
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => eliminarAlojamiento(alojamiento.id)}
-                    >
-                      Eliminar
-                    </button>
-                  )}
-                </td>
+                <td>
+                  <span className={obtenerClaseBadgeEstadoAlojamiento(alojamiento.estado)}>
+                    {alojamiento.estado}
+                  </span>
+                </td>           
+                <td>
+                {alojamiento.estado === 'ACTIVO' ? (
+                  <button
+                    type="button"
+                    className="button-success"
+                    onClick={() => finalizarAlojamiento(alojamiento.id)}
+                  >
+                    Finalizar
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="button-danger"
+                    onClick={() => eliminarAlojamiento(alojamiento.id)}
+                  >
+                    Eliminar
+                  </button>
+                )}
+              </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
       )}
   
     </section>

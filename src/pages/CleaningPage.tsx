@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -92,8 +92,9 @@ export function CleaningPage() {
     <section>
       <h2>Limpieza</h2>
 
-      <form onSubmit={registrarLimpieza}>
-        <h3>Registrar limpieza</h3>
+      <CollapsibleForm title="Registrar limpieza">
+        <form onSubmit={registrarLimpieza}>
+          <h3>Registrar limpieza</h3>
 
         <div>
           <label htmlFor="habitacionId">Habitación pendiente</label>
@@ -122,11 +123,11 @@ export function CleaningPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
-          {guardando ? 'Guardando...' : 'Registrar limpieza'}
+        <button type="submit" className="button-success" disabled={guardando}>
+        {guardando ? 'Guardando...' : 'Registrar limpieza'}
         </button>
       </form>
-
+    </CollapsibleForm>
       {error && <p>{error}</p>}
 
       <h3>Habitaciones pendientes</h3>
@@ -134,8 +135,9 @@ export function CleaningPage() {
       {habitacionesPendientes.length === 0 ? (
         <p>No hay habitaciones pendientes de limpieza.</p>
       ) : (
+       <div className="table-wrapper">
         <table>
-          <thead>
+            <thead>
             <tr>
               <th>Número</th>
               <th>Tipo</th>
@@ -153,6 +155,7 @@ export function CleaningPage() {
             ))}
           </tbody>
         </table>
+      </div>
       )}
 
       <h3>Historial</h3>
@@ -160,8 +163,9 @@ export function CleaningPage() {
       {historial.length === 0 ? (
         <p>No hay limpiezas registradas.</p>
       ) : (
+       <div className="table-wrapper">
         <table>
-          <thead>
+            <thead>
             <tr>
               <th>Habitación</th>
               <th>Usuario</th>
@@ -184,6 +188,7 @@ export function CleaningPage() {
             ))}
           </tbody>
         </table>
+       </div>
       )}
     </section>
   );

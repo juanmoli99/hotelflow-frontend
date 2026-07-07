@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -13,6 +13,26 @@ const tiposHabitacion = [
   'Triple',
   'Suite',
 ];
+
+function obtenerClaseBadgeEstadoHabitacion(estado: string) {
+  if (estado === 'DISPONIBLE') {
+    return 'badge badge-success';
+  }
+
+  if (estado === 'RESERVADA') {
+    return 'badge badge-warning';
+  }
+
+  if (estado === 'OCUPADA') {
+    return 'badge badge-danger';
+  }
+
+  if (estado === 'LIMPIEZA') {
+    return 'badge badge-info';
+  }
+
+  return 'badge badge-muted';
+}
 
 export function RoomsPage() {
   const [habitaciones, setHabitaciones] = useState<Room[]>([]);
@@ -167,8 +187,8 @@ export function RoomsPage() {
     <section>
       <h2>Habitaciones</h2>
 
+      <CollapsibleForm title="Nueva habitación">
       <form onSubmit={crearHabitacion}>
-        <h3>Nueva habitación</h3>
 
         <div>
           <label htmlFor="numero">Número</label>
@@ -208,10 +228,11 @@ export function RoomsPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
+        <button type="submit" className="button-success" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Crear habitación'}
         </button>
       </form>
+    </CollapsibleForm>
 
       {error && <p>{error}</p>}
 
@@ -220,6 +241,7 @@ export function RoomsPage() {
       {habitaciones.length === 0 ? (
         <p>No hay habitaciones cargadas.</p>
       ) : (
+       <div className="table-wrapper">
         <table>
           <thead>
             <tr>
@@ -287,21 +309,30 @@ export function RoomsPage() {
                   )}
                 </td>
 
-                <td>{habitacion.estado}</td>
+                <td>
+                  <span className={obtenerClaseBadgeEstadoHabitacion(habitacion.estado)}>
+                    {habitacion.estado}
+                  </span>
+                </td>
 
                 <td>
                   {habitacionEditandoId === habitacion.id ? (
                     <>
-                      <button
-                        type="button"
-                        onClick={() => guardarEdicion(habitacion.id)}
-                      >
-                        Guardar
-                      </button>
+                     <button
+                      type="button"
+                      className="button-success"
+                      onClick={() => guardarEdicion(habitacion.id)}
+                    >
+                      Guardar
+                    </button>
 
-                      <button type="button" onClick={cancelarEdicion}>
-                        Cancelar
-                      </button>
+                     <button
+                      type="button"
+                      className="button-warning"
+                      onClick={cancelarEdicion}
+                    >
+                      Cancelar
+                    </button>
                     </>
                   ) : (
                     <>
@@ -312,19 +343,21 @@ export function RoomsPage() {
                         Editar
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => eliminarHabitacion(habitacion.id)}
-                      >
-                        Eliminar
-                      </button>
+                     <button
+                      type="button"
+                      className="button-danger"
+                      onClick={() => eliminarHabitacion(habitacion.id)}
+                    >
+                      Eliminar
+                    </button>
                     </>
                   )}
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
     </section>
   );

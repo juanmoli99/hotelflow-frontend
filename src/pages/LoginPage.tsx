@@ -31,37 +31,43 @@ export function LoginPage() {
   }
 
   return (
-    <main>
-      <h1>HotelFlow</h1>
-      <h2>Iniciar sesión</h2>
-
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="usuario">Usuario</label>
-          <input
-            id="usuario"
-            type="text"
-            value={usuario}
-            onChange={(event) => setUsuario(event.target.value)}
-          />
+    <main className="login-page">
+      <section className="login-card">
+        <div className="login-brand">
+          <h1>HotelFlow</h1>
+          <p>Gestión hotelera simple y ordenada</p>
         </div>
 
-        <div>
-          <label htmlFor="contrasena">Contraseña</label>
-          <input
-            id="contrasena"
-            type="password"
-            value={contrasena}
-            onChange={(event) => setContrasena(event.target.value)}
-          />
-        </div>
+        <form className="login-form" onSubmit={handleSubmit}>
+          <h2>Iniciar sesión</h2>
 
-        {error && <p>{error}</p>}
+          <div>
+            <label htmlFor="usuario">Usuario</label>
+            <input
+              id="usuario"
+              type="text"
+              value={usuario}
+              onChange={(event) => setUsuario(event.target.value)}
+            />
+          </div>
 
-        <button type="submit" disabled={cargando}>
-          {cargando ? 'Ingresando...' : 'Ingresar'}
-        </button>
-      </form>
+          <div>
+            <label htmlFor="contrasena">Contraseña</label>
+            <input
+              id="contrasena"
+              type="password"
+              value={contrasena}
+              onChange={(event) => setContrasena(event.target.value)}
+            />
+          </div>
+
+          {error && <p className="form-error">{error}</p>}
+
+          <button type="submit" disabled={cargando}>
+            {cargando ? 'Ingresando...' : 'Ingresar'}
+          </button>
+        </form>
+      </section>
     </main>
   );
 }

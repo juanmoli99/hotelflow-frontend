@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -12,6 +12,17 @@ import type {
   TipoMovimientoCaja,
 } from '../types/cashMovement';
 
+function obtenerClaseBadgeTipoMovimiento(tipo: string) {
+  if (tipo === 'INGRESO') {
+    return 'badge badge-success';
+  }
+
+  if (tipo === 'EGRESO') {
+    return 'badge badge-danger';
+  }
+
+  return 'badge badge-muted';
+}
 const tiposMovimiento: TipoMovimientoCaja[] = ['INGRESO', 'EGRESO'];
 
 export function CashMovementsPage() {
@@ -131,8 +142,9 @@ export function CashMovementsPage() {
         <p>Saldo: ${resumen?.saldo}</p>
       </div>
 
-      <form onSubmit={crearMovimiento}>
-        <h3>Nuevo movimiento manual</h3>
+      <CollapsibleForm title="Nuevo movimiento manual">
+        <form onSubmit={crearMovimiento}>
+          <h3>Nuevo movimiento manual</h3>
 
         <div>
           <label htmlFor="tipo">Tipo</label>
@@ -174,10 +186,11 @@ export function CashMovementsPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
+        <button type="submit" className="button-success" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Registrar movimiento'}
         </button>
       </form>
+    </CollapsibleForm>
 
       {error && <p>{error}</p>}
 
@@ -186,8 +199,9 @@ export function CashMovementsPage() {
       {movimientos.length === 0 ? (
         <p>No hay movimientos registrados.</p>
       ) : (
+    <div className="table-wrapper">
         <table>
-          <thead>
+            <thead>
             <tr>
               <th>Tipo</th>
               <th>Monto</th>
@@ -202,7 +216,11 @@ export function CashMovementsPage() {
           <tbody>
             {movimientos.map((movimiento) => (
               <tr key={movimiento.id}>
-                <td>{movimiento.tipo}</td>
+                <td>
+                    <span className={obtenerClaseBadgeTipoMovimiento(movimiento.tipo)}>
+                        {movimiento.tipo}
+                    </span>
+                </td>
                 <td>${movimiento.monto}</td>
                 <td>{movimiento.descripcion ?? '-'}</td>
                 <td>
@@ -217,10 +235,11 @@ export function CashMovementsPage() {
                 <td>
                   {!movimiento.pago && !movimiento.gastoFijo ? (
                     <button
-                      type="button"
-                      onClick={() => eliminarMovimiento(movimiento.id)}
-                    >
-                      Eliminar
+                        type="button"
+                        className="button-danger"
+                        onClick={() => eliminarMovimiento(movimiento.id)}
+                        >
+                        Eliminar
                     </button>
                   ) : (
                     '-'
@@ -230,6 +249,7 @@ export function CashMovementsPage() {
             ))}
           </tbody>
         </table>
+      </div>
       )}
     </section>
   );

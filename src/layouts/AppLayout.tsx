@@ -1,4 +1,4 @@
-import { Link, Outlet } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 
 import { useAuth } from '../contexts/AuthContext';
 
@@ -11,18 +11,18 @@ export function AppLayout() {
         <h1>HotelFlow</h1>
 
         <nav>
-          <Link to="/">Dashboard</Link>
-          <Link to="/rooms">Habitaciones</Link>
-          <Link to="/clients">Clientes</Link>
-          <Link to="/reservations">Reservas</Link>
-          <Link to="/stays">Alojamientos</Link>
-          <Link to="/cleaning">Limpieza</Link>
-          <Link to="/payments">Pagos</Link>
-          <Link to="/cash-movements">Caja</Link>
-          <Link to="/fixed-expenses">Gastos fijos</Link>
-          <Link to="/reports">Reportes</Link>
-          <Link to="/room-prices">Precios</Link>
-          <Link to="/special-rates">Tarifas especiales</Link>
+          <NavLink to="/">Dashboard</NavLink>
+          <NavLink to="/rooms">Habitaciones</NavLink>
+          <NavLink to="/clients">Clientes</NavLink>
+          <NavLink to="/reservations">Reservas</NavLink>
+          <NavLink to="/stays">Alojamientos</NavLink>
+          <NavLink to="/cleaning">Limpieza</NavLink>
+          <NavLink to="/payments">Pagos</NavLink>
+          <NavLink to="/cash-movements">Caja</NavLink>
+          <NavLink to="/fixed-expenses">Gastos fijos</NavLink>
+          <NavLink to="/reports">Reportes</NavLink>
+          <NavLink to="/room-prices">Precios</NavLink>
+          <NavLink to="/special-rates">Tarifas especiales</NavLink>
         </nav>
 
         <section>

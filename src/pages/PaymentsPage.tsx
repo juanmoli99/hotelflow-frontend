@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -8,6 +8,26 @@ import { useAuth } from '../contexts/AuthContext';
 import type { ApiResponse } from '../types/auth';
 import type { Payment } from '../types/payment';
 import type { Stay } from '../types/stay';
+
+function obtenerClaseBadgeMetodoPago(metodo: string) {
+  if (metodo === 'EFECTIVO') {
+    return 'badge badge-success';
+  }
+
+  if (metodo === 'TARJETA') {
+    return 'badge badge-info';
+  }
+
+  if (metodo === 'TRANSFERENCIA') {
+    return 'badge badge-warning';
+  }
+
+  if (metodo === 'MERCADO_PAGO') {
+    return 'badge badge-info';
+  }
+
+  return 'badge badge-muted';
+}
 
 const metodosPago = [
   'EFECTIVO',
@@ -132,8 +152,9 @@ export function PaymentsPage() {
     <section>
       <h2>Pagos</h2>
 
-      <form onSubmit={crearPago}>
-        <h3>Nuevo pago</h3>
+      <CollapsibleForm title="Nuevo pago">
+        <form onSubmit={crearPago}>
+          <h3>Nuevo pago</h3>
 
         <div>
           <label htmlFor="alojamientoId">Alojamiento</label>
@@ -191,10 +212,11 @@ export function PaymentsPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
+        <button type="submit" className="button-success" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Registrar pago'}
         </button>
       </form>
+    </CollapsibleForm>
 
       {error && <p>{error}</p>}
 
@@ -203,8 +225,9 @@ export function PaymentsPage() {
       {pagos.length === 0 ? (
         <p>No hay pagos registrados.</p>
       ) : (
+    <div className="table-wrapper">
         <table>
-          <thead>
+            <thead>
             <tr>
               <th>Cliente</th>
               <th>Habitación</th>
@@ -225,14 +248,19 @@ export function PaymentsPage() {
                   {pago.alojamiento.habitacion.tipo}
                 </td>
                 <td>${pago.monto}</td>
-                <td>{pago.metodo}</td>
+                <td>
+                    <span className={obtenerClaseBadgeMetodoPago(pago.metodo)}>
+                        {pago.metodo}
+                    </span>
+                </td>
                 <td>{pago.usuario.nombreCompleto}</td>
                 <td>{pago.creadoEn.slice(0, 10)}</td>
                 <td>
                   <button
                     type="button"
+                    className="button-danger"
                     onClick={() => eliminarPago(pago.id)}
-                  >
+                    >
                     Eliminar
                   </button>
                 </td>
@@ -240,6 +268,7 @@ export function PaymentsPage() {
             ))}
           </tbody>
         </table>
+    </div>
       )}
     </section>
   );
