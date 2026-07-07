@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -126,8 +126,8 @@ export function RoomPricesPage() {
     <section>
       <h2>Precios de habitaciones</h2>
 
-      <form onSubmit={crearPrecio}>
-        <h3>Nuevo precio</h3>
+      <CollapsibleForm title="Nuevo precio">
+        <form onSubmit={crearPrecio}>
 
         <div>
           <label htmlFor="modoPrecio">Aplicar precio a</label>
@@ -210,11 +210,11 @@ export function RoomPricesPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
+        <button type="submit" className="button-success" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Crear precio'}
         </button>
       </form>
-
+    </CollapsibleForm>
       {error && <p>{error}</p>}
 
       <h3>Listado</h3>
@@ -249,12 +249,23 @@ export function RoomPricesPage() {
                     ? precioHabitacion.vigenteHasta.slice(0, 10)
                     : '-'}
                 </td>
-                <td>{precioHabitacion.activo ? 'Sí' : 'No'}</td>
+                <td>
+                    <span
+                    className={
+                    precioHabitacion.activo
+                        ? 'badge badge-success'
+                        : 'badge badge-muted'
+                    }
+                >
+                    {precioHabitacion.activo ? 'ACTIVO' : 'INACTIVO'}
+                    </span>
+                </td>       
                 <td>
                   <button
                     type="button"
+                    className="button-danger"
                     onClick={() => eliminarPrecio(precioHabitacion.id)}
-                  >
+                    >
                     Eliminar
                   </button>
                 </td>

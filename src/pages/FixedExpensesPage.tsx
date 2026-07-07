@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -7,6 +7,22 @@ import { useAuth } from '../contexts/AuthContext';
 
 import type { ApiResponse } from '../types/auth';
 import type { FixedExpense } from '../types/fixedExpense';
+
+function obtenerClaseBadgeEstadoGastoFijo(estado: string) {
+  if (estado === 'PENDIENTE') {
+    return 'badge badge-warning';
+  }
+
+  if (estado === 'PAGADO') {
+    return 'badge badge-success';
+  }
+
+  if (estado === 'CANCELADO') {
+    return 'badge badge-danger';
+  }
+
+  return 'badge badge-muted';
+}
 
 export function FixedExpensesPage() {
   const { usuario } = useAuth();
@@ -155,8 +171,9 @@ export function FixedExpensesPage() {
     <section>
       <h2>Gastos fijos</h2>
 
-      <form onSubmit={crearGasto}>
-        <h3>Nuevo gasto fijo</h3>
+      <CollapsibleForm title="Nuevo gasto fijo">
+        <form onSubmit={crearGasto}>
+          <h3>Nuevo gasto fijo</h3>
 
         <div>
           <label htmlFor="nombre">Nombre</label>
@@ -199,10 +216,11 @@ export function FixedExpensesPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
+        <button type="submit" className="button-success" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Crear gasto fijo'}
         </button>
       </form>
+    </CollapsibleForm>
 
       {error && <p>{error}</p>}
 
@@ -211,8 +229,9 @@ export function FixedExpensesPage() {
       {gastos.length === 0 ? (
         <p>No hay gastos fijos cargados.</p>
       ) : (
+    <div className="table-wrapper">
         <table>
-          <thead>
+            <thead>
             <tr>
               <th>Nombre</th>
               <th>Monto</th>
@@ -231,7 +250,11 @@ export function FixedExpensesPage() {
                 <td>${gasto.monto}</td>
                 <td>{gasto.fechaVencimiento.slice(0, 10)}</td>
                 <td>{gasto.fechaPago ? gasto.fechaPago.slice(0, 10) : '-'}</td>
-                <td>{gasto.estado}</td>
+                <td>
+                    <span className={obtenerClaseBadgeEstadoGastoFijo(gasto.estado)}>
+                        {gasto.estado}
+                    </span>
+                </td>
                 <td>{gasto.usuario.nombreCompleto}</td>
                 <td>
                   {gasto.estado === 'PENDIENTE' ? (
@@ -239,23 +262,24 @@ export function FixedExpensesPage() {
                       <button
                         type="button"
                         onClick={() => pagarGasto(gasto.id)}
-                      >
+                        >
                         Pagar
-                      </button>
+                        </button>
 
-                      <button
+                        <button
                         type="button"
                         onClick={() => cancelarGasto(gasto.id)}
-                      >
+                        >
                         Cancelar
-                      </button>
+                        </button>
                     </>
                   ) : (
                     <button
-                      type="button"
-                      onClick={() => eliminarGasto(gasto.id)}
-                    >
-                      Eliminar
+                        type="button"
+                        className="button-danger"
+                        onClick={() => eliminarGasto(gasto.id)}
+                        >
+                        Eliminar
                     </button>
                   )}
                 </td>
@@ -263,6 +287,7 @@ export function FixedExpensesPage() {
             ))}
           </tbody>
         </table>
+    </div>
       )}
     </section>
   );

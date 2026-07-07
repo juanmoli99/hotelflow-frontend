@@ -52,26 +52,55 @@ export function DashboardPage() {
     <section>
       <h2>Dashboard</h2>
 
-      <h3>Habitaciones</h3>
+      <div className="dashboard-grid">
+        <article className="dashboard-card">
+          <span>Total habitaciones</span>
+          <strong>{dashboard?.habitaciones.total}</strong>
+        </article>
 
-      <div>
-        <p>Total: {dashboard?.habitaciones.total}</p>
-        <p>Disponibles: {dashboard?.habitaciones.disponibles}</p>
-        <p>Reservadas: {dashboard?.habitaciones.reservadas}</p>
-        <p>Ocupadas: {dashboard?.habitaciones.ocupadas}</p>
-        <p>Limpieza: {dashboard?.habitaciones.limpieza}</p>
-        <p>
-          Fuera de servicio:{' '}
-          {dashboard?.habitaciones.fueraDeServicio}
-        </p>
+        <article className="dashboard-card success">
+          <span>Disponibles</span>
+          <strong>{dashboard?.habitaciones.disponibles}</strong>
+        </article>
+
+        <article className="dashboard-card warning">
+          <span>Reservadas</span>
+          <strong>{dashboard?.habitaciones.reservadas}</strong>
+        </article>
+
+        <article className="dashboard-card danger">
+          <span>Ocupadas</span>
+          <strong>{dashboard?.habitaciones.ocupadas}</strong>
+        </article>
+
+        <article className="dashboard-card info">
+          <span>Limpieza</span>
+          <strong>{dashboard?.habitaciones.limpieza}</strong>
+        </article>
+
+        <article className="dashboard-card muted">
+          <span>Fuera de servicio</span>
+          <strong>{dashboard?.habitaciones.fueraDeServicio}</strong>
+        </article>
       </div>
 
       <h3>Caja</h3>
 
-      <div>
-        <p>Ingresos: ${dashboard?.caja.ingresos}</p>
-        <p>Egresos: ${dashboard?.caja.egresos}</p>
-        <p>Saldo: ${dashboard?.caja.saldo}</p>
+      <div className="dashboard-grid">
+        <article className="dashboard-card success">
+          <span>Ingresos</span>
+          <strong>${dashboard?.caja.ingresos}</strong>
+        </article>
+
+        <article className="dashboard-card danger">
+          <span>Egresos</span>
+          <strong>${dashboard?.caja.egresos}</strong>
+        </article>
+
+        <article className="dashboard-card">
+          <span>Saldo</span>
+          <strong>${dashboard?.caja.saldo}</strong>
+        </article>
       </div>
     </section>
   );

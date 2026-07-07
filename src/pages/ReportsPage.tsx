@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import { api } from '../api/api';
 
 import type { ApiResponse } from '../types/auth';
@@ -114,7 +113,7 @@ export function ReportsPage() {
         />
       </div>
 
-      <button type="button" onClick={cargarReportes} disabled={cargando}>
+      <button type="button" className="button-success" onClick={cargarReportes} disabled={cargando}>
         {cargando ? 'Cargando...' : 'Generar reportes'}
       </button>
 
@@ -151,8 +150,9 @@ export function ReportsPage() {
       {pagosPorMetodo.length === 0 ? (
         <p>No hay pagos en el período seleccionado.</p>
       ) : (
+    <div className="table-wrapper">
         <table>
-          <thead>
+            <thead>
             <tr>
               <th>Método</th>
               <th>Cantidad</th>
@@ -170,6 +170,7 @@ export function ReportsPage() {
             ))}
           </tbody>
         </table>
+      </div>
       )}
 
       <h3>Reservas</h3>
@@ -177,8 +178,9 @@ export function ReportsPage() {
       {reservas.length === 0 ? (
         <p>No hay reservas en el período seleccionado.</p>
       ) : (
+    <div className="table-wrapper">
         <table>
-          <thead>
+            <thead>
             <tr>
               <th>Cliente</th>
               <th>Habitación</th>
@@ -202,6 +204,7 @@ export function ReportsPage() {
             ))}
           </tbody>
         </table>
+      </div>
       )}
     </section>
   );

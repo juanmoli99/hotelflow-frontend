@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -147,8 +147,9 @@ export function SpecialRatesPage() {
     <section>
       <h2>Tarifas especiales</h2>
 
-      <form onSubmit={crearTarifa}>
-        <h3>Nueva tarifa especial</h3>
+      <CollapsibleForm title="Nueva tarifa especial">
+        <form onSubmit={crearTarifa}>
+          <h3>Nueva tarifa especial</h3>
 
         <div>
           <label htmlFor="nombre">Nombre</label>
@@ -251,11 +252,11 @@ export function SpecialRatesPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
+        <button type="submit" className="button-success" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Crear tarifa especial'}
         </button>
       </form>
-
+    </CollapsibleForm>
       {error && <p>{error}</p>}
 
       <h3>Listado</h3>
@@ -263,8 +264,9 @@ export function SpecialRatesPage() {
       {tarifas.length === 0 ? (
         <p>No hay tarifas especiales cargadas.</p>
       ) : (
+    <div className="table-wrapper">
         <table>
-          <thead>
+            <thead>
             <tr>
               <th>Nombre</th>
               <th>Aplicación</th>
@@ -288,12 +290,23 @@ export function SpecialRatesPage() {
                 <td>${tarifa.precio}</td>
                 <td>{tarifa.vigenteDesde.slice(0, 10)}</td>
                 <td>{tarifa.vigenteHasta.slice(0, 10)}</td>
-                <td>{tarifa.activo ? 'Sí' : 'No'}</td>
+                <td>
+                    <span
+                    className={
+                    tarifa.activo
+                        ? 'badge badge-success'
+                        : 'badge badge-muted'
+                    }
+                    >
+                    {tarifa.activo ? 'ACTIVA' : 'INACTIVA'}
+                    </span>
+                </td>    
                 <td>
                   <button
                     type="button"
+                    className="button-danger"
                     onClick={() => eliminarTarifa(tarifa.id)}
-                  >
+                    >
                     Eliminar
                   </button>
                 </td>
@@ -301,6 +314,7 @@ export function SpecialRatesPage() {
             ))}
           </tbody>
         </table>
+    </div>
       )}
     </section>
   );

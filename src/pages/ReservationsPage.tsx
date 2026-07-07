@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -8,6 +8,26 @@ import type { ApiResponse } from '../types/auth';
 import type { Client } from '../types/client';
 import type { Reservation } from '../types/reservation';
 import type { Room } from '../types/room';
+
+function obtenerClaseBadgeEstadoReserva(estado: string) {
+  if (estado === 'PENDIENTE') {
+    return 'badge badge-warning';
+  }
+
+  if (estado === 'CONFIRMADA') {
+    return 'badge badge-success';
+  }
+
+  if (estado === 'CANCELADA') {
+    return 'badge badge-danger';
+  }
+
+  if (estado === 'CONVERTIDA') {
+    return 'badge badge-info';
+  }
+
+  return 'badge badge-muted';
+}
 
 export function ReservationsPage() {
   const [reservas, setReservas] = useState<Reservation[]>([]);
@@ -198,8 +218,9 @@ export function ReservationsPage() {
     <section>
       <h2>Reservas</h2>
 
-      <form onSubmit={crearReserva}>
-        <h3>Nueva reserva</h3>
+      <CollapsibleForm title="Nueva reserva">
+        <form onSubmit={crearReserva}>
+          <h3>Nueva reserva</h3>
 
         <div>
           <label htmlFor="clienteId">Cliente</label>
@@ -255,10 +276,11 @@ export function ReservationsPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
+        <button type="submit" className="button-success" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Crear reserva'}
         </button>
       </form>
+    </CollapsibleForm>
 
       {error && <p>{error}</p>}
 
@@ -267,6 +289,7 @@ export function ReservationsPage() {
       {reservas.length === 0 ? (
         <p>No hay reservas cargadas.</p>
       ) : (
+      <div className="table-wrapper">
         <table>
           <thead>
             <tr>
@@ -353,19 +376,28 @@ export function ReservationsPage() {
                   )}
                 </td>
 
-                <td>{reserva.estado}</td>
+                <td>
+                  <span className={obtenerClaseBadgeEstadoReserva(reserva.estado)}>
+                    {reserva.estado}
+                  </span>
+                </td>
 
                 <td>
                   {reservaEditandoId === reserva.id ? (
                     <>
                       <button
                         type="button"
+                        className="button-success"
                         onClick={() => guardarEdicion(reserva.id)}
                       >
                         Guardar
                       </button>
 
-                      <button type="button" onClick={cancelarEdicion}>
+                      <button
+                        type="button"
+                        className="button-warning"
+                        onClick={cancelarEdicion}
+                      >
                         Cancelar
                       </button>
                     </>
@@ -380,6 +412,7 @@ export function ReservationsPage() {
 
                       <button
                         type="button"
+                        className="button-danger"
                         onClick={() => eliminarReserva(reserva.id)}
                       >
                         Eliminar
@@ -391,6 +424,7 @@ export function ReservationsPage() {
             ))}
           </tbody>
         </table>
+      </div>
       )}
     </section>
   );

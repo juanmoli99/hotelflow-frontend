@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 
 import { api } from '../api/api';
@@ -173,8 +173,9 @@ export function ClientsPage() {
     <section>
       <h2>Clientes</h2>
 
-      <form onSubmit={crearCliente}>
-        <h3>Nuevo cliente</h3>
+      <CollapsibleForm title="Nuevo cliente">
+        <form onSubmit={crearCliente}>
+          <h3>Nuevo cliente</h3>
 
         <div>
           <label htmlFor="nombreCompleto">Nombre completo</label>
@@ -236,10 +237,11 @@ export function ClientsPage() {
           />
         </div>
 
-        <button type="submit" disabled={guardando}>
+        <button type="submit" className="button-success" disabled={guardando}>
           {guardando ? 'Guardando...' : 'Crear cliente'}
         </button>
       </form>
+    </CollapsibleForm>
 
       {error && <p>{error}</p>}
 
@@ -248,6 +250,7 @@ export function ClientsPage() {
       {clientes.length === 0 ? (
         <p>No hay clientes cargados.</p>
       ) : (
+      <div className="table-wrapper">
         <table>
           <thead>
             <tr>
@@ -323,12 +326,17 @@ export function ClientsPage() {
                     <>
                       <button
                         type="button"
+                        className="button-success"
                         onClick={() => guardarEdicion(cliente.id)}
                       >
                         Guardar
                       </button>
 
-                      <button type="button" onClick={cancelarEdicion}>
+                      <button
+                        type="button"
+                        className="button-warning"
+                        onClick={cancelarEdicion}
+                      >
                         Cancelar
                       </button>
                     </>
@@ -343,6 +351,7 @@ export function ClientsPage() {
 
                       <button
                         type="button"
+                        className="button-danger"
                         onClick={() => eliminarCliente(cliente.id)}
                       >
                         Eliminar
@@ -352,8 +361,9 @@ export function ClientsPage() {
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );
