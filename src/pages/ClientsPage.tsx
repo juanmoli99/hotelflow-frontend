@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
-
+import { Alert } from '../components/Alert';
 import { api } from '../api/api';
 
 import type { ApiResponse } from '../types/auth';
@@ -243,8 +243,8 @@ export function ClientsPage() {
       </form>
     </CollapsibleForm>
 
-      {error && <p>{error}</p>}
-
+      {error && <Alert type="error">{error}</Alert>}
+      
       <h3>Listado</h3>
 
       {clientes.length === 0 ? (

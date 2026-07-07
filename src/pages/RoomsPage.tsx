@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
-
 import { api } from '../api/api';
+import { Alert } from '../components/Alert';
 
 import type { ApiResponse } from '../types/auth';
 import type { Room } from '../types/room';
@@ -234,7 +234,7 @@ export function RoomsPage() {
       </form>
     </CollapsibleForm>
 
-      {error && <p>{error}</p>}
+      {error && <Alert type="error">{error}</Alert>}
 
       <h3>Listado</h3>
 

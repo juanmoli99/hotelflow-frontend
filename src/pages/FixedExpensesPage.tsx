@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
+import { Alert } from '../components/Alert';
 
 import { api } from '../api/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -222,7 +223,7 @@ export function FixedExpensesPage() {
       </form>
     </CollapsibleForm>
 
-      {error && <p>{error}</p>}
+      {error && <Alert type="error">{error}</Alert>}
 
       <h3>Listado</h3>
 

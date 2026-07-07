@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api/api';
-
+import { Alert } from '../components/Alert';
 import type { ApiResponse } from '../types/auth';
 import type {
   CashReport,
@@ -117,7 +117,7 @@ export function ReportsPage() {
         {cargando ? 'Cargando...' : 'Generar reportes'}
       </button>
 
-      {error && <p>{error}</p>}
+      {error && <Alert type="error">{error}</Alert>}
 
       {reporteCaja && (
         <>
