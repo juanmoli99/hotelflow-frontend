@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'https://hotelflow-backend.vercel.app/api',
+  baseURL: '/api',
 });
 
 api.interceptors.request.use((config) => {
