@@ -9,7 +9,7 @@ import type { Client } from '../types/client';
 
 export function ClientsPage() {
   const [clientes, setClientes] = useState<Client[]>([]);
-
+  const [busqueda, setBusqueda] = useState('');
   const [nombreCompleto, setNombreCompleto] = useState('');
   const [documento, setDocumento] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -169,6 +169,21 @@ export function ClientsPage() {
     );
   }
 
+  const clientesFiltrados = clientes.filter((cliente) => {
+  const textoBusqueda = busqueda.toLowerCase().trim();
+
+  if (!textoBusqueda) {
+    return true;
+  }
+
+  return (
+    cliente.nombreCompleto.toLowerCase().includes(textoBusqueda) ||
+    cliente.documento.toLowerCase().includes(textoBusqueda) ||
+    (cliente.telefono ?? '').toLowerCase().includes(textoBusqueda) ||
+    (cliente.email ?? '').toLowerCase().includes(textoBusqueda)
+  );
+});
+
   return (
     <section>
       <h2>Clientes</h2>
@@ -244,10 +259,21 @@ export function ClientsPage() {
     </CollapsibleForm>
 
       {error && <Alert type="error">{error}</Alert>}
-      
+
       <h3>Listado</h3>
 
-      {clientes.length === 0 ? (
+      <div className="search-box">
+        <label htmlFor="busquedaCliente">Buscar cliente</label>
+        <input
+          id="busquedaCliente"
+          type="text"
+          placeholder="Buscar por nombre, documento, teléfono o email"
+          value={busqueda}
+          onChange={(event) => setBusqueda(event.target.value)}
+        />
+      </div>
+
+      {clientesFiltrados.length === 0 ? (
         <p>No hay clientes cargados.</p>
       ) : (
       <div className="table-wrapper">
@@ -263,7 +289,7 @@ export function ClientsPage() {
           </thead>
 
           <tbody>
-            {clientes.map((cliente) => (
+            {clientesFiltrados.map((cliente) => (
               <tr key={cliente.id}>
                 <td>
                   {clienteEditandoId === cliente.id ? (

@@ -2,13 +2,19 @@ import { useEffect, useState } from 'react';
 import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 import { Alert } from '../components/Alert';
-
 import { api } from '../api/api';
 import { useAuth } from '../contexts/AuthContext';
-
 import type { ApiResponse } from '../types/auth';
 import type { CleaningLog } from '../types/cleaning';
 import type { Room } from '../types/room';
+
+function obtenerFechaLocal(fecha: Date) {
+  const año = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+
+  return `${año}-${mes}-${dia}`;
+}
 
 export function CleaningPage() {
   const { usuario } = useAuth();
@@ -36,8 +42,16 @@ export function CleaningPage() {
         api.get<ApiResponse<CleaningLog[]>>('/cleaning'),
       ]);
 
+      const fechaHoy = obtenerFechaLocal(new Date());
+
+      const historialDelDia = historialResponse.data.data.filter((limpieza) => {
+      const fechaLimpieza = obtenerFechaLocal(new Date(limpieza.creadoEn));
+
+      return fechaLimpieza === fechaHoy;
+      });
+
       setHabitacionesPendientes(pendientesResponse.data.data);
-      setHistorial(historialResponse.data.data);
+      setHistorial(historialDelDia);
     } catch {
       setError('No se pudo cargar la limpieza.');
     } finally {
@@ -159,10 +173,9 @@ export function CleaningPage() {
       </div>
       )}
 
-      <h3>Historial</h3>
-
+        <h3>Limpiezas de hoy</h3>
       {historial.length === 0 ? (
-        <p>No hay limpiezas registradas.</p>
+        <p>No hay limpiezas registradas hoy.</p>
       ) : (
        <div className="table-wrapper">
         <table>

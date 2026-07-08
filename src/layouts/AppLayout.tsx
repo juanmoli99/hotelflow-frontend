@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { useAuth } from '../contexts/AuthContext';
 
 export function AppLayout() {
   const { usuario, logout } = useAuth();
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   return (
     <div>
@@ -24,16 +26,30 @@ export function AppLayout() {
           <NavLink to="/room-prices">Precios</NavLink>
           <NavLink to="/special-rates">Tarifas especiales</NavLink>
         </nav>
-
-        <section>
-          <p>{usuario?.nombreCompleto}</p>
-          <p>{usuario?.rol.nombre}</p>
-
-          <button type="button" onClick={logout}>
-            Cerrar sesión
-          </button>
-        </section>
       </aside>
+
+      <header className="topbar">
+        <div className="topbar-user-menu">
+          <button
+            type="button"
+            className="topbar-menu-button"
+            onClick={() => setMenuAbierto(!menuAbierto)}
+          >
+            ☰
+          </button>
+
+          {menuAbierto && (
+            <div className="topbar-dropdown">
+              <p>{usuario?.nombreCompleto}</p>
+              <span>{usuario?.rol.nombre}</span>
+
+              <button type="button" onClick={logout}>
+                Cerrar sesión
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
 
       <main>
         <Outlet />

@@ -3,9 +3,9 @@ import { CollapsibleForm } from '../components/CollapsibleForm';
 import type { FormEvent } from 'react';
 import { api } from '../api/api';
 import { Alert } from '../components/Alert';
-
 import type { ApiResponse } from '../types/auth';
 import type { Room } from '../types/room';
+import { AxiosError } from 'axios';
 
 const tiposHabitacion = [
   'Individual',
@@ -13,6 +13,24 @@ const tiposHabitacion = [
   'Triple',
   'Suite',
 ];
+
+const CAPACIDAD_MAXIMA = 10;
+
+function obtenerMensajeError(error: unknown, mensajeDefault: string) {
+  if (error instanceof AxiosError) {
+    const mensaje = error.response?.data?.message;
+
+    if (Array.isArray(mensaje)) {
+      return mensaje.join(' ');
+    }
+
+    if (typeof mensaje === 'string') {
+      return mensaje;
+    }
+  }
+
+  return mensajeDefault;
+}
 
 function obtenerClaseBadgeEstadoHabitacion(estado: string) {
   if (estado === 'DISPONIBLE') {
@@ -72,8 +90,12 @@ export function RoomsPage() {
 
     setError('');
 
-    if (!numero.trim()) {
-      setError('El número de habitación es obligatorio.');
+    if (
+      !numero ||
+      Number(numero) < 1 ||
+      !Number.isInteger(Number(numero))
+    ) {
+      setError('El número de habitación debe ser un entero mayor a 0.');
       return;
     }
 
@@ -82,8 +104,13 @@ export function RoomsPage() {
       return;
     }
 
-    if (!capacidad || Number(capacidad) < 1) {
-      setError('La capacidad debe ser mayor a 0.');
+    if (
+      !capacidad ||
+      Number(capacidad) < 1 ||
+      Number(capacidad) > CAPACIDAD_MAXIMA ||
+      !Number.isInteger(Number(capacidad))
+    ) {
+      setError(`La capacidad debe ser un entero entre 1 y ${CAPACIDAD_MAXIMA}.`);
       return;
     }
 
@@ -101,8 +128,10 @@ export function RoomsPage() {
       setCapacidad('');
 
       await obtenerHabitaciones();
-    } catch {
-      setError('No se pudo crear la habitación.');
+    } catch (error) {
+      setError(
+        obtenerMensajeError(error, 'No se pudo crear la habitación.'),
+      );
     } finally {
       setGuardando(false);
     }
@@ -188,13 +217,14 @@ export function RoomsPage() {
       <h2>Habitaciones</h2>
 
       <CollapsibleForm title="Nueva habitación">
-      <form onSubmit={crearHabitacion}>
-
+        <form onSubmit={crearHabitacion} noValidate>
         <div>
           <label htmlFor="numero">Número</label>
           <input
             id="numero"
-            type="text"
+            type="number"
+            min="1"
+            step="1"
             value={numero}
             onChange={(event) => setNumero(event.target.value)}
           />
@@ -223,6 +253,8 @@ export function RoomsPage() {
             id="capacidad"
             type="number"
             min="1"
+            max={CAPACIDAD_MAXIMA}
+            step="1"
             value={capacidad}
             onChange={(event) => setCapacidad(event.target.value)}
           />
