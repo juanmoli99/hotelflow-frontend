@@ -16,6 +16,7 @@ import { RoomsPage } from './pages/RoomsPage';
 import { SpecialRatesPage } from './pages/SpecialRatesPage';
 import { StaysPage } from './pages/StaysPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
+import { UsersPage } from './pages/UsersPage';
 
 function App() {
   const { estaAutenticado } = useAuth();
@@ -43,6 +44,7 @@ function App() {
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/room-prices" element={<RoomPricesPage />} />
           <Route path="/special-rates" element={<SpecialRatesPage />} />
+          <Route path="/users" element={<UsersPage />} />
         </Route>
       </Route>
 

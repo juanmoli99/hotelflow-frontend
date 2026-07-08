@@ -25,6 +25,7 @@ export function AppLayout() {
           <NavLink to="/reports">Reportes</NavLink>
           <NavLink to="/room-prices">Precios</NavLink>
           <NavLink to="/special-rates">Tarifas especiales</NavLink>
+          <NavLink to="/users">Usuarios</NavLink>
         </nav>
       </aside>
 
