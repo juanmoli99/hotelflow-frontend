@@ -15,13 +15,21 @@ export function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const usuarioLimpio = usuario.trim().toLowerCase();
+    const contrasenaLimpia = contrasena.trim();
+
+    if (!usuarioLimpio || !contrasenaLimpia) {
+      setError('Completá usuario y contraseña.');
+      return;
+    }
+
     setError('');
     setCargando(true);
 
     try {
       await login({
-        usuario,
-        contrasena,
+        usuario: usuarioLimpio,
+        contrasena: contrasenaLimpia,
       });
     } catch {
       setError('Usuario o contraseña incorrectos.');
@@ -48,6 +56,11 @@ export function LoginPage() {
               type="text"
               value={usuario}
               onChange={(event) => setUsuario(event.target.value)}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              autoComplete="username"
+              disabled={cargando}
             />
           </div>
 
@@ -58,6 +71,11 @@ export function LoginPage() {
               type="password"
               value={contrasena}
               onChange={(event) => setContrasena(event.target.value)}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              autoComplete="current-password"
+              disabled={cargando}
             />
           </div>
 
