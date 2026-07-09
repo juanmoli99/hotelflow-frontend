@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 
 import type { FormEvent } from 'react';
@@ -11,6 +12,51 @@ import type { Client } from '../types/client';
 import type { Reservation } from '../types/reservation';
 import type { Room } from '../types/room';
 import type { Stay } from '../types/stay';
+
+type MetodoPago =
+  | 'EFECTIVO'
+  | 'TARJETA'
+  | 'TRANSFERENCIA'
+  | 'MERCADO_PAGO'
+  | 'OTRO';
+
+type RoomPriceReserva = {
+  id: string;
+  habitacionId?: string | null;
+  tipoHabitacion?: string | null;
+  habitacion?: {
+    id: string;
+  } | null;
+  precio: number;
+  vigenteDesde: string;
+  vigenteHasta?: string | null;
+  activo: boolean;
+};
+
+type SpecialRateReserva = {
+  id: string;
+  habitacionId?: string | null;
+  tipoHabitacion?: string | null;
+  habitacion?: {
+    id: string;
+  } | null;
+  nombre: string;
+  descripcion?: string | null;
+  precio: number;
+  vigenteDesde: string;
+  vigenteHasta: string;
+  activo: boolean;
+};
+
+const MILISEGUNDOS_POR_DIA = 1000 * 60 * 60 * 24;
+
+const METODOS_PAGO: MetodoPago[] = [
+  'EFECTIVO',
+  'TARJETA',
+  'TRANSFERENCIA',
+  'MERCADO_PAGO',
+  'OTRO',
+];
 
 function obtenerClaseBadgeEstadoReserva(estado: string) {
   if (estado === 'PENDIENTE') {
@@ -41,16 +87,71 @@ function fechasSeCruzan(
   return ingresoA < salidaB && salidaA > ingresoB;
 }
 
+function formatearDinero(valor: number) {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+  }).format(valor);
+}
+
+function calcularNoches(fechaIngreso: string, fechaSalida: string) {
+  if (!fechaIngreso || !fechaSalida || fechaIngreso >= fechaSalida) {
+    return 0;
+  }
+
+  const ingreso = new Date(`${fechaIngreso}T00:00:00`);
+  const salida = new Date(`${fechaSalida}T00:00:00`);
+
+  return Math.ceil(
+    (salida.getTime() - ingreso.getTime()) / MILISEGUNDOS_POR_DIA,
+  );
+}
+
+function obtenerFecha(fecha: string) {
+  return fecha.slice(0, 10);
+}
+
+function obtenerMensajeError(error: unknown, mensajeDefault: string) {
+  if (error instanceof AxiosError) {
+    const mensaje = error.response?.data?.message;
+
+    if (Array.isArray(mensaje)) {
+      return mensaje.join(' ');
+    }
+
+    if (typeof mensaje === 'string') {
+      return mensaje;
+    }
+  }
+
+  return mensajeDefault;
+}
+
+function obtenerHabitacionIdDePrecio(precio: RoomPriceReserva) {
+  return precio.habitacionId ?? precio.habitacion?.id ?? null;
+}
+
+function obtenerHabitacionIdDeTarifa(tarifa: SpecialRateReserva) {
+  return tarifa.habitacionId ?? tarifa.habitacion?.id ?? null;
+}
+
 export function ReservationsPage() {
   const [reservas, setReservas] = useState<Reservation[]>([]);
   const [clientes, setClientes] = useState<Client[]>([]);
   const [habitaciones, setHabitaciones] = useState<Room[]>([]);
   const [alojamientos, setAlojamientos] = useState<Stay[]>([]);
+  const [precios, setPrecios] = useState<RoomPriceReserva[]>([]);
+  const [tarifasEspeciales, setTarifasEspeciales] = useState<
+    SpecialRateReserva[]
+  >([]);
 
   const [clienteId, setClienteId] = useState('');
   const [habitacionId, setHabitacionId] = useState('');
   const [fechaIngreso, setFechaIngreso] = useState('');
   const [fechaSalida, setFechaSalida] = useState('');
+  const [tarifaEspecialId, setTarifaEspecialId] = useState('');
+  const [sena, setSena] = useState('');
+  const [metodoSena, setMetodoSena] = useState<MetodoPago | ''>('');
 
   const [reservaEditandoId, setReservaEditandoId] =
     useState<string | null>(null);
@@ -75,17 +176,23 @@ export function ReservationsPage() {
         clientesResponse,
         habitacionesResponse,
         alojamientosResponse,
+        preciosResponse,
+        tarifasEspecialesResponse,
       ] = await Promise.all([
         api.get<ApiResponse<Reservation[]>>('/reservations'),
         api.get<ApiResponse<Client[]>>('/clients'),
         api.get<ApiResponse<Room[]>>('/rooms'),
         api.get<ApiResponse<Stay[]>>('/stays'),
+        api.get<ApiResponse<RoomPriceReserva[]>>('/room-prices'),
+        api.get<ApiResponse<SpecialRateReserva[]>>('/special-rates'),
       ]);
 
       setReservas(reservasResponse.data.data);
       setClientes(clientesResponse.data.data);
       setHabitaciones(habitacionesResponse.data.data);
       setAlojamientos(alojamientosResponse.data.data);
+      setPrecios(preciosResponse.data.data);
+      setTarifasEspeciales(tarifasEspecialesResponse.data.data);
     } catch {
       setError('No se pudieron cargar las reservas.');
     } finally {
@@ -185,6 +292,112 @@ export function ReservationsPage() {
       }),
   );
 
+  const habitacionSeleccionada = habitaciones.find(
+    (habitacion) => habitacion.id === habitacionId,
+  );
+
+  const cantidadNoches = calcularNoches(fechaIngreso, fechaSalida);
+
+  const precioVigenteSeleccionado = (() => {
+    if (!habitacionSeleccionada || !fechaIngreso) {
+      return null;
+    }
+
+    const preciosVigentes = precios
+      .filter((precio) => {
+        if (!precio.activo) {
+          return false;
+        }
+
+        const habitacionIdPrecio = obtenerHabitacionIdDePrecio(precio);
+
+        const aplicaPorHabitacion =
+          habitacionIdPrecio === habitacionSeleccionada.id;
+
+        const aplicaPorTipo =
+          precio.tipoHabitacion === habitacionSeleccionada.tipo;
+
+        if (!aplicaPorHabitacion && !aplicaPorTipo) {
+          return false;
+        }
+
+        const vigenteDesde = obtenerFecha(precio.vigenteDesde);
+        const vigenteHasta = precio.vigenteHasta
+          ? obtenerFecha(precio.vigenteHasta)
+          : null;
+
+        return (
+          vigenteDesde <= fechaIngreso &&
+          (!vigenteHasta || vigenteHasta >= fechaIngreso)
+        );
+      })
+      .sort((a, b) =>
+        obtenerFecha(b.vigenteDesde).localeCompare(
+          obtenerFecha(a.vigenteDesde),
+        ),
+      );
+
+    const precioPorHabitacion = preciosVigentes.find(
+      (precio) =>
+        obtenerHabitacionIdDePrecio(precio) === habitacionSeleccionada.id,
+    );
+
+    return precioPorHabitacion ?? preciosVigentes[0] ?? null;
+  })();
+
+  const tarifasEspecialesDisponibles = tarifasEspeciales.filter(
+    (tarifa) => {
+      if (
+        !habitacionSeleccionada ||
+        !fechaIngreso ||
+        !fechaSalida ||
+        fechaIngreso >= fechaSalida ||
+        !tarifa.activo
+      ) {
+        return false;
+      }
+
+      const habitacionIdTarifa = obtenerHabitacionIdDeTarifa(tarifa);
+
+      const aplicaPorHabitacion =
+        habitacionIdTarifa === habitacionSeleccionada.id;
+
+      const aplicaPorTipo =
+        tarifa.tipoHabitacion === habitacionSeleccionada.tipo;
+
+      if (!aplicaPorHabitacion && !aplicaPorTipo) {
+        return false;
+      }
+
+      return (
+        obtenerFecha(tarifa.vigenteDesde) <= fechaIngreso &&
+        obtenerFecha(tarifa.vigenteHasta) >= fechaSalida
+      );
+    },
+  );
+
+  const tarifaEspecialSeleccionada =
+    tarifasEspecialesDisponibles.find(
+      (tarifa) => tarifa.id === tarifaEspecialId,
+    ) ?? null;
+
+  const subtotalEstimado =
+    precioVigenteSeleccionado && cantidadNoches > 0
+      ? precioVigenteSeleccionado.precio * cantidadNoches
+      : 0;
+
+  const totalEstimado =
+    tarifaEspecialSeleccionada && cantidadNoches > 0
+      ? tarifaEspecialSeleccionada.precio * cantidadNoches
+      : subtotalEstimado;
+
+  const senaNumerica = sena ? Number(sena) : 0;
+
+  const saldoPendienteEstimado = Math.max(
+    totalEstimado - senaNumerica,
+    0,
+  );
+
   async function crearReserva(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -216,6 +429,39 @@ export function ReservationsPage() {
       return;
     }
 
+    if (!precioVigenteSeleccionado) {
+      setError('No hay un precio vigente para esta habitación.');
+      return;
+    }
+
+    if (
+      sena &&
+      (!Number.isFinite(senaNumerica) || senaNumerica < 0)
+    ) {
+      setError('La seña debe ser un número válido mayor o igual a 0.');
+      return;
+    }
+
+    if (senaNumerica > totalEstimado) {
+      setError('La seña no puede ser mayor al total de la reserva.');
+      return;
+    }
+
+    if (senaNumerica > 0 && !metodoSena) {
+      setError('El método de pago de la seña es obligatorio.');
+      return;
+    }
+
+    if (
+      tarifaEspecialId &&
+      !tarifasEspecialesDisponibles.some(
+        (tarifa) => tarifa.id === tarifaEspecialId,
+      )
+    ) {
+      setError('La tarifa especial seleccionada no es válida.');
+      return;
+    }
+
     setGuardando(true);
 
     try {
@@ -224,18 +470,24 @@ export function ReservationsPage() {
         habitacionId,
         fechaIngreso,
         fechaSalida,
+        tarifaEspecialId: tarifaEspecialId || undefined,
+        sena: senaNumerica,
+        metodoSena: senaNumerica > 0 ? metodoSena : undefined,
       });
 
       setClienteId('');
       setHabitacionId('');
       setFechaIngreso('');
       setFechaSalida('');
+      setTarifaEspecialId('');
+      setSena('');
+      setMetodoSena('');
 
       await cargarDatos();
 
       setExito('Reserva creada correctamente.');
-    } catch {
-      setError('No se pudo crear la reserva.');
+    } catch (error) {
+      setError(obtenerMensajeError(error, 'No se pudo crear la reserva.'));
     } finally {
       setGuardando(false);
     }
@@ -301,8 +553,10 @@ export function ReservationsPage() {
       await cargarDatos();
 
       setExito('Reserva actualizada correctamente.');
-    } catch {
-      setError('No se pudo actualizar la reserva.');
+    } catch (error) {
+      setError(
+        obtenerMensajeError(error, 'No se pudo actualizar la reserva.'),
+      );
     }
   }
 
@@ -322,8 +576,10 @@ export function ReservationsPage() {
       await cargarDatos();
 
       setExito('Reserva eliminada correctamente.');
-    } catch {
-      setError('No se pudo eliminar la reserva.');
+    } catch (error) {
+      setError(
+        obtenerMensajeError(error, 'No se pudo eliminar la reserva.'),
+      );
     }
   }
 
@@ -341,7 +597,7 @@ export function ReservationsPage() {
       <h2>Reservas</h2>
 
       <CollapsibleForm title="Nueva reserva">
-        <form onSubmit={crearReserva}>
+        <form onSubmit={crearReserva} noValidate>
           <div>
             <label htmlFor="clienteId">Cliente</label>
             <select
@@ -359,13 +615,20 @@ export function ReservationsPage() {
             </select>
           </div>
 
-           <div>
+          <div>
             <label htmlFor="habitacionId">Habitación disponible</label>
             <select
               id="habitacionId"
               value={habitacionId}
-              disabled={!fechaIngreso || !fechaSalida || fechaIngreso >= fechaSalida}
-              onChange={(event) => setHabitacionId(event.target.value)}
+              disabled={
+                !fechaIngreso ||
+                !fechaSalida ||
+                fechaIngreso >= fechaSalida
+              }
+              onChange={(event) => {
+                setHabitacionId(event.target.value);
+                setTarifaEspecialId('');
+              }}
             >
               {!fechaIngreso || !fechaSalida ? (
                 <option value="">Cargá primero las fechas</option>
@@ -396,6 +659,7 @@ export function ReservationsPage() {
               onChange={(event) => {
                 setFechaIngreso(event.target.value);
                 setHabitacionId('');
+                setTarifaEspecialId('');
               }}
             />
           </div>
@@ -409,10 +673,101 @@ export function ReservationsPage() {
               onChange={(event) => {
                 setFechaSalida(event.target.value);
                 setHabitacionId('');
+                setTarifaEspecialId('');
               }}
             />
           </div>
 
+          <div>
+            <label htmlFor="tarifaEspecialId">Tarifa especial</label>
+            <select
+              id="tarifaEspecialId"
+              value={tarifaEspecialId}
+              disabled={!habitacionId || tarifasEspecialesDisponibles.length === 0}
+              onChange={(event) => setTarifaEspecialId(event.target.value)}
+            >
+              {!habitacionId ? (
+                <option value="">Seleccioná una habitación</option>
+              ) : tarifasEspecialesDisponibles.length === 0 ? (
+                <option value="">No hay tarifas especiales disponibles</option>
+              ) : (
+                <>
+                  <option value="">Sin tarifa especial</option>
+
+                  {tarifasEspecialesDisponibles.map((tarifa) => (
+                    <option key={tarifa.id} value={tarifa.id}>
+                      {tarifa.nombre} - {formatearDinero(tarifa.precio)} por noche
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="sena">Seña</label>
+            <input
+              id="sena"
+              type="number"
+              min="0"
+              step="0.01"
+              value={sena}
+              onChange={(event) => setSena(event.target.value)}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="metodoSena">Método de pago de la seña</label>
+            <select
+              id="metodoSena"
+              value={metodoSena}
+              disabled={!sena || senaNumerica <= 0}
+              onChange={(event) =>
+                setMetodoSena(event.target.value as MetodoPago | '')
+              }
+            >
+              <option value="">Seleccionar método</option>
+
+              {METODOS_PAGO.map((metodo) => (
+                <option key={metodo} value={metodo}>
+                  {metodo}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="subtotal">Subtotal</label>
+            <input
+              id="subtotal"
+              type="text"
+              value={formatearDinero(subtotalEstimado)}
+              readOnly
+              disabled
+            />
+          </div>
+
+          <div>
+            <label htmlFor="total">Total</label>
+            <input
+              id="total"
+              type="text"
+              value={formatearDinero(totalEstimado)}
+              readOnly
+              disabled
+            />
+          </div>
+
+          <div>
+            <label htmlFor="saldoPendiente">Saldo pendiente</label>
+            <input
+              id="saldoPendiente"
+              type="text"
+              value={formatearDinero(saldoPendienteEstimado)}
+              readOnly
+              disabled
+            />
+          </div>
 
           <button type="submit" disabled={guardando}>
             {guardando ? 'Guardando...' : 'Crear reserva'}
@@ -436,6 +791,10 @@ export function ReservationsPage() {
                 <th>Habitación</th>
                 <th>Ingreso</th>
                 <th>Salida</th>
+                <th>Tarifa</th>
+                <th>Seña</th>
+                <th>Total</th>
+                <th>Saldo</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -535,6 +894,11 @@ export function ReservationsPage() {
                       reserva.fechaSalida.slice(0, 10)
                     )}
                   </td>
+
+                  <td>{reserva.tarifaEspecial?.nombre ?? '-'}</td>
+                  <td>{formatearDinero(reserva.sena ?? 0)}</td>
+                  <td>{formatearDinero(reserva.total ?? 0)}</td>
+                  <td>{formatearDinero(reserva.saldoPendiente ?? 0)}</td>
 
                   <td>
                     <span
